@@ -106,6 +106,8 @@ async def parse_rugcheck(html):
     risk_title = risk_value = risk_status = "N/A"
     risk_alerts = holders_data = ['N/A']
     overview_data = {}
+    hrefs = ['https://solana.fm/', 'https://solana.fm/']
+    market_data = []
     try:
         soup = BeautifulSoup(html, "html.parser")
 
@@ -135,6 +137,7 @@ async def parse_rugcheck(html):
         token_body = soup.find_all('tbody')
         if token_body:
             rows = token_body[0].find_all('tr')
+            hrefs = [a['href'] for a in token_body[0].find_all('a', href=True)]
             overview_data = {}
             for row in rows:
                 cols = row.find_all('td')
@@ -154,6 +157,8 @@ async def parse_rugcheck(html):
                 cols = row.find_all('td')
                 if len(cols) == 3:
                     account = cols[0].text.strip()
+                    href_link = cols[0].find('a', href=True)['href']
+                    account = f"[{account}]({href_link})"
                     amount = cols[1].text.strip()
                     percentage = cols[2].text.strip()
                     holders_data.append({
@@ -162,7 +167,42 @@ async def parse_rugcheck(html):
                         'percentage': percentage
                     })
 
-        return risk_title, risk_value, risk_status, risk_alerts, overview_data, holders_data
+        market_table = soup.find('table', {'data-v-5b9159a6': True})
+        market_rows = market_table.find_all('tr')[1:]
+
+        for row in market_rows:
+            columns = row.find_all('td')
+            if columns:
+                try:
+                    # market_img = columns[0].find('img')['src'] if columns[0].find('img') else None
+                    # address_link = columns[1].find('a')['href'] if columns[1].find('a') else None
+                    # pair_links = [a['href'] for a in columns[2].find_all('a')]
+                    pairs = columns[2].get_text().split('/')
+                    pairs = [pair.strip() for pair in pairs]
+                    # lp_mint_link = columns[3].find('a')['href'] if columns[3].find('a') else None
+                    market_liquidity = columns[4].text.strip()
+                    market_lp_locked = columns[5].text.strip()
+
+                    market_data.append({
+                        # 'Market Image': market_img,
+                        # 'Address URL': address_link,
+                        # 'Pair URLs': pair_links,
+                        'Pairs': pairs,
+                        # 'LP Mint URL': lp_mint_link,
+                        'Liquidity': market_liquidity,
+                        'LP Locked': market_lp_locked
+                    })
+                except:
+                    pass
+
+
+        return risk_title, risk_value, risk_status, risk_alerts, overview_data, holders_data, hrefs, market_data
     except Exception as error:
         print(error)
-        return risk_title, risk_value, risk_status, risk_alerts, overview_data, holders_data
+        return risk_title, risk_value, risk_status, risk_alerts, overview_data, holders_data, hrefs, market_data
+
+
+# with open('html.txt', 'r', encoding='utf-8') as file:
+#     html = file.read()
+#
+# asyncio.run(parse_rugcheck(html))

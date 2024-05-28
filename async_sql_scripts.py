@@ -55,3 +55,26 @@ async def change_verified_status(user_id, status):
         async with conn.cursor() as cursor:
             await cursor.execute("UPDATE user SET verified_status = ? WHERE user_id = ?", (status, user_id,))
             await conn.commit()
+
+
+async def get_all_verified_users():
+    async with aiosqlite.connect(data_base) as conn:
+        async with conn.cursor() as cursor:
+            result = await cursor.execute("SELECT username FROM user WHERE verified_status = ?", (2,))
+            all_users = await result.fetchall()
+            return [users[0] for users in all_users]
+
+
+async def change_verified_username_status(username, status):
+    async with aiosqlite.connect(data_base) as conn:
+        async with conn.cursor() as cursor:
+            await cursor.execute("UPDATE user SET verified_status = ? WHERE username = ?", (status, username,))
+            await conn.commit()
+
+
+async def get_all_users():
+    async with aiosqlite.connect(data_base) as conn:
+        async with conn.cursor() as cursor:
+            result = await cursor.execute("SELECT user_id FROM user")
+            all_users = await result.fetchall()
+            return [users[0] for users in all_users]

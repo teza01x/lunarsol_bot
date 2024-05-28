@@ -32,4 +32,6 @@ dictionary = {
                     "**Your application has been accepted, now you can use bot-commands.**",
     "need_to_sub": "**You need to be subscribed to the group to use the bot.**\n"
                    "[👉 Link to group](https://t.me/+FP4p7UTgpdg2MmI8)",
+    "revoked_username": "**The rights to use the bot for user: @{} have been REVOKED.**",
+    "promoted_username": "**The rights to use the bot for user: @{} have been PROMOTED.**",
 }

@@ -68,9 +68,101 @@ async def start(message):
         print(f"Error in start message: {e}")
 
 
+@bot.message_handler(commands=['verified'])
+async def verified(message):
+    try:
+        user_id = message.from_user.id
+
+        chat_type = message.chat.type
+        if chat_type == 'private':
+            if user_id == admin_id:
+                list_of_verified_users = await get_all_verified_users()
+
+                text_output = "⭐️ **Verified Users** ⭐️\n\n"
+                for user in list_of_verified_users:
+                    text_output += f"- @{user}\n"
+
+                text = await escape(text_output, flag=0)
+                await bot.send_message(message.chat.id, text=text, parse_mode="MarkdownV2")
+
+    except Exception as error:
+        print(error)
+
+
+@bot.message_handler(commands=['revoke'])
+async def revoke(message):
+    try:
+        user_id = message.from_user.id
+
+        chat_type = message.chat.type
+        if chat_type == 'private':
+            if user_id == admin_id:
+
+                user_name = (message.text).split(" ")[1]
+
+                await change_verified_username_status(user_name, 0)
+
+                text_output = dictionary['revoked_username'].format(user_name)
+
+                text = await escape(text_output, flag=0)
+                await bot.send_message(message.chat.id, text=text, parse_mode="MarkdownV2")
+
+    except Exception as error:
+        print(error)
+
+
+@bot.message_handler(commands=['promote'])
+async def promote(message):
+    try:
+        user_id = message.from_user.id
+
+        chat_type = message.chat.type
+        if chat_type == 'private':
+            if user_id == admin_id:
+
+                user_name = (message.text).split(" ")[1]
+
+                await change_verified_username_status(user_name, 2)
+
+                text_output = dictionary['promoted_username'].format(user_name)
+
+                text = await escape(text_output, flag=0)
+                await bot.send_message(message.chat.id, text=text, parse_mode="MarkdownV2")
+
+    except Exception as error:
+        print(error)
+
+
+@bot.message_handler(commands=['notif'])
+async def notif(message):
+    try:
+        user_id = message.from_user.id
+
+        chat_type = message.chat.type
+        if chat_type == 'private':
+            if user_id == admin_id:
+
+                notif_text = (message.text).split(" ")[1:]
+                text_output = " ".join(notif_text)
+
+                text = await escape(text_output, flag=0)
+                user_list = await get_all_users()
+
+                for user_id in user_list:
+                    try:
+                        await bot.send_message(user_id, text=text, parse_mode="MarkdownV2")
+                    except:
+                        pass
+
+    except Exception as error:
+        print(error)
+
+
 @bot.message_handler(commands=['wallet_scan'])
 async def wallet_scan(message):
     user_id = message.from_user.id
+    username = message.from_user.username
+
     try:
         chat_type = message.chat.type
         if chat_type == 'private':
@@ -79,6 +171,13 @@ async def wallet_scan(message):
                 verified_status = await get_verified_status(user_id)
 
                 if verified_status == 2:
+                    if not await check_user_exists(user_id):
+                        try:
+                            await add_user_to_db(user_id, username)
+                        except Exception as error:
+                            print(f"Error adding user to db error:\n{error}")
+                    else:
+                        await update_username(user_id, username)
                     try:
                         wallet_address = (message.text).split(" ")[1]
 
@@ -144,7 +243,7 @@ async def wallet_scan(message):
                                 last_5_trades = "**This wallet has not traded for a long time.**"
 
                             text = await escape(text_form + last_5_trades, flag=0)
-                            await bot.send_message(chat_id=user_id, text=text, parse_mode="MarkdownV2")
+                            await bot.send_message(chat_id=user_id, text=text, parse_mode="MarkdownV2", disable_web_page_preview=True)
                         else:
                             await bot.send_message(chat_id=user_id, text=await escape(dictionary['wrong_address'], flag=0), parse_mode="MarkdownV2")
                     except:
@@ -161,6 +260,8 @@ async def wallet_scan(message):
 @bot.message_handler(commands=['contract_scan'])
 async def contract_scan(message):
     user_id = message.from_user.id
+    username = message.from_user.username
+
     try:
         chat_type = message.chat.type
         if chat_type == 'private':
@@ -169,6 +270,13 @@ async def contract_scan(message):
                 verified_status = await get_verified_status(user_id)
 
                 if verified_status == 2:
+                    if not await check_user_exists(user_id):
+                        try:
+                            await add_user_to_db(user_id, username)
+                        except Exception as error:
+                            print(f"Error adding user to db error:\n{error}")
+                    else:
+                        await update_username(user_id, username)
                     try:
                         contract_address = (message.text).split(" ")[1]
                         contract_check = await contract_address_check(contract_address)
@@ -176,23 +284,20 @@ async def contract_scan(message):
                         if contract_check == True:
                             await bot.send_message(chat_id=user_id, text=await escape(dictionary['request_processing'], flag=0), parse_mode="MarkdownV2")
 
-                            risk_title, risk_value, risk_status, risk_alerts, overview_data, holders_data = await get_contract_address_info(contract_address)
+                            risk_title, risk_value, risk_status, risk_alerts, overview_data, holders_data, hrefs, market_data = await get_contract_address_info(contract_address)
 
                             output = ""
-
-                            # holders_data
-                            # if holders_data:
-                            #     output += "Top Holders:\n"
-                            #     for holder in holders_data:
-                            #         output += f"Account: {holder['account']}, Amount: {holder['amount']}, Percentage: {holder['percentage']}\n"
-                            # else:
-                            #     output += "Top Holders table not found or incomplete.\n"
 
                             # overview_data
                             if overview_data:
                                 output += "🔸 **Token Overview** 🔸\n"
                                 for key, value in overview_data.items():
-                                    output += f"**{key}:** `{value}`\n"
+                                    if key == "Mint":
+                                        output += f"**{key}:** [{value}]({hrefs[0]})\n"
+                                    elif key == "Mint Authority":
+                                        output += f"**{key}:** [{value}]({hrefs[1]})\n"
+                                    else:
+                                        output += f"**{key}:** `{value}`\n"
                             else:
                                 output += "🔸 **Token Overview** 🔸\n"
 
@@ -203,12 +308,35 @@ async def contract_scan(message):
                                 output += f"🗯 **Status:** `{risk_status}`\n"
                                 output += "📢 **Alerts:**\n"
                                 for alert in risk_alerts:
-                                    output += f" - {alert}\n"
+                                    output += f" - `{alert}`\n"
                             else:
                                 output += "\n🔺 **Risk Analysis** 🔻"
 
+                            # holders_data
+                            if holders_data:
+                                output += "\n📊 **Top Holders** 📊\n"
+                                for holder in holders_data:
+                                    output += f"👤**Account: {holder['account']}, ⚡️ Amount: `{holder['amount']}`, ➗ Percentage: `{holder['percentage']}`**\n"
+                            else:
+                                output += ""
+
+                            if len(market_data) > 0:
+                                output += "\n📝 **Markets** 📝\n"
+                                for item in market_data:
+                                    pairs = "{} / {}".format(item['Pairs'][0], item['Pairs'][1])
+                                    market_liq = item['Liquidity']
+                                    market_lp_locked = item['LP Locked']
+
+                                    output += (f"⚖️ **Pair:** `{pairs}`\n"
+                                               f"💸 **Liquidity:** `{market_liq}`\n"
+                                               f"🔒 **LP Locked:** `{market_lp_locked}`\n"
+                                               f"---------------------------------\n")
+
+                            else:
+                                output += ""
+
                             text = await escape(output, flag=0)
-                            await bot.send_message(chat_id=user_id, text=text, parse_mode="MarkdownV2")
+                            await bot.send_message(chat_id=user_id, text=text, parse_mode="MarkdownV2", disable_web_page_preview=True)
                         else:
                             await bot.send_message(chat_id=user_id, text=await escape(dictionary['wrong_ca'], flag=0), parse_mode="MarkdownV2")
                     except:
