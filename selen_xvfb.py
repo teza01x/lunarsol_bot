@@ -35,7 +35,7 @@ async def cielo_scrap(wallet_address):
         html_daily_trades = "No daily trades"
         print(html_daily_trades)
 
-    wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/main/div/div[3]/div/div[1]/div[2]/div[2]/button[2]"))).click()
+    driver.get(f"https://app.cielo.finance/profile/{wallet_address}?timeframe=7d&tab=tokenpnl&sortBy=trades_desc")
     await asyncio.sleep(2)
 
     try:
@@ -45,7 +45,7 @@ async def cielo_scrap(wallet_address):
         html_weekly_trades = "No weekly trades"
         print(html_weekly_trades)
 
-    wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/main/div/div[3]/div/div[1]/div[2]/div[2]/button[3]"))).click()
+    driver.get(f"https://app.cielo.finance/profile/{wallet_address}?timeframe=30d&tab=tokenpnl&sortBy=trades_desc")
     await asyncio.sleep(2)
 
     try:

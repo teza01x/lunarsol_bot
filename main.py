@@ -181,7 +181,8 @@ async def wallet_scan(message):
                     try:
                         wallet_address = (message.text).split(" ")[1]
 
-                        wallet_check = await check_wallet_address(wallet_address)
+                        # wallet_check = await check_wallet_address(wallet_address)
+                        wallet_check = True
 
                         coins = []
                         if wallet_check == True:
@@ -246,7 +247,8 @@ async def wallet_scan(message):
                             await bot.send_message(chat_id=user_id, text=text, parse_mode="MarkdownV2", disable_web_page_preview=True)
                         else:
                             await bot.send_message(chat_id=user_id, text=await escape(dictionary['wrong_address'], flag=0), parse_mode="MarkdownV2")
-                    except:
+                    except Exception as error:
+                        print(error)
                         await bot.send_message(chat_id=user_id, text=await escape(dictionary['wrong_address'], flag=0), parse_mode="MarkdownV2")
                 else:
                     await bot.send_message(chat_id=user_id, text=await escape(dictionary['not_verified'], flag=0), parse_mode="MarkdownV2")
@@ -339,7 +341,8 @@ async def contract_scan(message):
                             await bot.send_message(chat_id=user_id, text=text, parse_mode="MarkdownV2", disable_web_page_preview=True)
                         else:
                             await bot.send_message(chat_id=user_id, text=await escape(dictionary['wrong_ca'], flag=0), parse_mode="MarkdownV2")
-                    except:
+                    except Exception as error:
+                        print(error)
                         await bot.send_message(chat_id=user_id, text=await escape(dictionary['wrong_ca'], flag=0), parse_mode="MarkdownV2")
                 else:
                     await bot.send_message(chat_id=user_id, text=await escape(dictionary['not_verified'], flag=0), parse_mode="MarkdownV2")
@@ -398,20 +401,21 @@ async def contract_address_check(contract_address):
 
 
 async def check_wallet_address(wallet_address):
-    async def is_valid_ethereum_address(address):
-        pattern = re.compile(r"^0x[a-fA-F0-9]{40}$")
-        return bool(pattern.match(address))
-
-    async def is_valid_solana_address(address):
-        pattern = re.compile(r"^[1-9A-HJ-NP-Za-km-z]{32,44}$")
-        return bool(pattern.match(address))
-
-    evm_wallet = await is_valid_ethereum_address(wallet_address)
-    sol_wallet = await is_valid_solana_address(wallet_address)
-
-    if evm_wallet == True or sol_wallet == True:
-        return True
-    return False
+    return True
+    # async def is_valid_ethereum_address(address):
+    #     pattern = re.compile(r"^0x[a-fA-F0-9]{40}$")
+    #     return bool(pattern.match(address))
+    #
+    # async def is_valid_solana_address(address):
+    #     pattern = re.compile(r"^[1-9A-HJ-NP-Za-km-z]{32,44}$")
+    #     return bool(pattern.match(address))
+    # 
+    # evm_wallet = await is_valid_ethereum_address(wallet_address)
+    # sol_wallet = await is_valid_solana_address(wallet_address)
+    #
+    # if evm_wallet == True or sol_wallet == True:
+    #     return True
+    # return False
 
 
 async def get_contract_address_info(contract_address):
