@@ -188,7 +188,7 @@ async def wallet_scan(message):
                         if wallet_check == True:
                             await bot.send_message(chat_id=user_id, text=await escape(dictionary['request_processing'], flag=0), parse_mode="MarkdownV2")
 
-                            trade_daily_results, trade_weekly_results, trade_monthly_results, realized_pnl_value_daily, realized_pnl_value_weekly, realized_pnl_value_monthly, winrate_value_monthly, tokens_traded_value_monthly, tags = await get_trade_wallet_data_from_cielo(wallet_address)
+                            trade_daily_results, trade_weekly_results, trade_monthly_results, realized_pnl_value_daily, realized_pnl_value_weekly, realized_pnl_value_monthly, winrate_value_monthly, tokens_traded_value_monthly, tags, wallet_balance = await get_trade_wallet_data_from_cielo(wallet_address)
 
                             trd_rslts = [trade_daily_results, trade_weekly_results, trade_monthly_results]
 
@@ -223,7 +223,8 @@ async def wallet_scan(message):
                             if len(tags) > 0:
                                 tags_text = ", ".join(tags)
                                 text_form = (f"💳**Wallet:** `{wallet_address}`\n\n"
-                                             f"🔅**Tags:** {tags_text}\n\n"
+                                             f"💰**Balance:** `{wallet_balance}`\n\n"
+                                             f"🔅**Tags:** **{tags_text}**\n\n"
                                              f"🎗**Winrate:** `{winrate_value_monthly}`\n"
                                              f"👁‍🗨**Tokens Traded:** `{tokens_traded_value_monthly}`\n\n"
                                              f"📈**Daily PNL:** `{realized_pnl_value_daily}`\n"
@@ -232,6 +233,7 @@ async def wallet_scan(message):
                                              f"📊**Last 5 Trades:**\n\n")
                             else:
                                 text_form = (f"💳**Wallet:** `{wallet_address}`\n\n"
+                                             f"💰**Balance:** `{wallet_balance}`\n\n"
                                              f"🎗**Winrate:** `{winrate_value_monthly}%`\n"
                                              f"👁‍🗨**Tokens Traded:** `{tokens_traded_value_monthly}`\n\n"
                                              f"📈**Daily PNL:** `{realized_pnl_value_daily}`\n"
@@ -425,10 +427,10 @@ async def get_contract_address_info(contract_address):
 
 async def get_trade_wallet_data_from_cielo(wallet_address):
     html_daily, html_weekly, html_monthly = await cielo_scrap(wallet_address)
-    trade_daily_results, realized_pnl_value_daily, winrate_value_daily, tokens_traded_value_daily, tags = await parse_cielo(html_daily)
-    trade_weekly_results, realized_pnl_value_weekly, winrate_value_weekly, tokens_traded_value_weekly, tags = await parse_cielo(html_weekly)
-    trade_monthly_results, realized_pnl_value_monthly, winrate_value_monthly, tokens_traded_value_monthly, tags = await parse_cielo(html_monthly)
-    return trade_daily_results, trade_weekly_results, trade_monthly_results, realized_pnl_value_daily, realized_pnl_value_weekly, realized_pnl_value_monthly, winrate_value_monthly, tokens_traded_value_monthly, tags
+    trade_daily_results, realized_pnl_value_daily, winrate_value_daily, tokens_traded_value_daily, tags, wallet_balance = await parse_cielo(html_daily)
+    trade_weekly_results, realized_pnl_value_weekly, winrate_value_weekly, tokens_traded_value_weekly, tags, wallet_balance = await parse_cielo(html_weekly)
+    trade_monthly_results, realized_pnl_value_monthly, winrate_value_monthly, tokens_traded_value_monthly, tags, wallet_balance = await parse_cielo(html_monthly)
+    return trade_daily_results, trade_weekly_results, trade_monthly_results, realized_pnl_value_daily, realized_pnl_value_weekly, realized_pnl_value_monthly, winrate_value_monthly, tokens_traded_value_monthly, tags, wallet_balance
 
 
 async def run_services():

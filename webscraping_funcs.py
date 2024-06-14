@@ -7,6 +7,7 @@ async def parse_cielo(html):
     realized_pnl_value = "$0.00"
     winrate_value = "0"
     tokens_traded_value = "0"
+    wallet_balance = "0 SOL ($0.0)"
     tags = []
     try:
         soup = BeautifulSoup(html, 'html.parser')
@@ -70,6 +71,27 @@ async def parse_cielo(html):
                         realized_pnl_value = realized_pnl_value.split()[0]
             except AttributeError:
                 continue
+        balance_element = soup.find('p', class_='text-14 text-green')
+        try:
+            balance_text = balance_element.text.split(' ')[0]
+            balance = float(balance_text)
+
+            dollar_equiv_element = balance_element.find('span', class_='text-textBase')
+            # dollar_equiv = dollar_equiv_element.text.strip(' ($)').replace('\xa0', '').replace(',', '.').replace(' ', '')
+            dollar_equiv_text = dollar_equiv_element.text.strip(' ($)').replace('\xa0', '')
+
+            # Обработка чисел с разным форматированием
+            if ',' in dollar_equiv_text and '.' in dollar_equiv_text:
+                # Формат 1,000.00
+                dollar_equiv_text = dollar_equiv_text.replace(',', '')
+            elif ',' in dollar_equiv_text:
+                # Формат 1.000,00
+                dollar_equiv_text = dollar_equiv_text.replace('.', '').replace(',', '.')
+
+            dollar_equiv = float(dollar_equiv_text)
+            wallet_balance = f"{balance} SOL (${dollar_equiv})"
+        except:
+            pass
         try:
             winrate_blocks = soup.find_all('div', class_='flex flex-col gap-2 min-w-[80px]')
             winrate_value = winrate_blocks[2].text
@@ -99,7 +121,7 @@ async def parse_cielo(html):
                     'bought_value': "N/A",
                     'sold_price': "N/A",
                     'sold_value': "N/A"}]
-    return results, realized_pnl_value, winrate_value, tokens_traded_value, tags
+    return results, realized_pnl_value, winrate_value, tokens_traded_value, tags, wallet_balance
 
 
 async def parse_rugcheck(html):

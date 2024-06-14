@@ -23,7 +23,7 @@ async def cielo_scrap(wallet_address):
     driver = webdriver.Chrome(options=options)
 
     wait = WebDriverWait(driver, 5)
-    driver.get(f"https://app.cielo.finance/profile/{wallet_address}?timeframe=1d&tab=tokenpnl&sortBy=trades_desc")
+    driver.get(f"https://app.cielo.finance/profile/{wallet_address}/pnl/tokens?timeframe=1d")
 
     print(driver.title)
 
@@ -35,7 +35,7 @@ async def cielo_scrap(wallet_address):
         html_daily_trades = "No daily trades"
         print(html_daily_trades)
 
-    driver.get(f"https://app.cielo.finance/profile/{wallet_address}?timeframe=7d&tab=tokenpnl&sortBy=trades_desc")
+    driver.get(f"https://app.cielo.finance/profile/{wallet_address}/pnl/tokens?timeframe=7d")
     await asyncio.sleep(2)
 
     try:
@@ -45,7 +45,7 @@ async def cielo_scrap(wallet_address):
         html_weekly_trades = "No weekly trades"
         print(html_weekly_trades)
 
-    driver.get(f"https://app.cielo.finance/profile/{wallet_address}?timeframe=30d&tab=tokenpnl&sortBy=trades_desc")
+    driver.get(f"https://app.cielo.finance/profile/{wallet_address}/pnl/tokens?timeframe=30d")
     await asyncio.sleep(2)
 
     try:
